@@ -4,49 +4,50 @@ import (
 	"database/sql"
 )
 
-type Product struct {
-	ID    int     `json:"id"`
-	Name  string  `json:"name"`
-	Price float64 `json:"price"`
+type Player struct {
+	ID    int    `json:"id"`
+	Name  string `json:"name"`
+	Score int    `json:"score"`
+	IsCut bool   `json:is_cut`
 }
 
-func (p *Product) GetProduct(db *sql.DB) error {
-	return db.QueryRow("SELECT name, price FROM products WHERE id=$1", p.ID).
-		Scan(&p.Name, &p.Price)
+func (p *Player) GetPlayer(db *sql.DB) error {
+	return db.QueryRow("SELECT name, score, is_cut FROM players WHERE id=$1", p.ID).
+		Scan(&p.Name, &p.Score, &p.IsCut)
 }
 
-func (p *Product) UpdateProduct(db *sql.DB) error {
-	_, err := db.Exec("UPDATE products SET name=$1, price=$2 WHERE id=$3", p.Name, p.Price, p.ID)
+func (p *Player) UpdatePlayer(db *sql.DB) error {
+	_, err := db.Exec("UPDATE players SET name=$1, score=$2 is_cut=$3 WHERE id=$4", p.Name, p.Score, p.IsCut, p.ID)
 	return err
 }
 
-func (p *Product) DeleteProduct(db *sql.DB) error {
-	_, err := db.Exec("DELETE FROM products WHERE id=$1", p.ID)
+func (p *Player) DeletePlayer(db *sql.DB) error {
+	_, err := db.Exec("DELETE FROM players WHERE id=$1", p.ID)
 	return err
 }
 
-func (p *Product) CreateProduct(db *sql.DB) error {
+func (p *Player) CreatePlayer(db *sql.DB) error {
 	return db.QueryRow(
-		"INSERT INTO products(name, price) VALUES($1, $2) RETURNING id", p.Name, p.Price).
+		"INSERT INTO players(name, price) VALUES($1, $2, $3) RETURNING id", p.Name, p.Score, p.IsCut).
 		Scan(&p.ID)
 
 }
 
-func GetProducts(db *sql.DB, start, count int) ([]Product, error) {
-	rows, err := db.Query("SELECT id, name, price FROM products LIMIT $1 OFFSET $2", count, start)
+func GetPlayers(db *sql.DB, start, count int) ([]Player, error) {
+	rows, err := db.Query("SELECT id, name, score, is_cut FROM players LIMIT $1 OFFSET $2", count, start)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	products := []Product{}
+	players := []Player{}
 
 	for rows.Next() {
-		var p Product
-		if err := rows.Scan(&p.ID, &p.Name, &p.Price); err != nil {
+		var p Player
+		if err := rows.Scan(&p.ID, &p.Name, &p.Score, &p.IsCut); err != nil {
 			return nil, err
 		}
-		products = append(products, p)
+		players = append(players, p)
 	}
-	return products, nil
+	return players, nil
 }

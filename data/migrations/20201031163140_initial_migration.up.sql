@@ -1,6 +1,7 @@
-CREATE TABLE IF NOT EXISTS products( 
+CREATE TABLE IF NOT EXISTS players( 
     id SERIAL, 
     name TEXT NOT NULL, 
-    price NUMERIC(10,2) NOT NULL DEFAULT 0.00, 
-    CONSTRAINT products_pkey PRIMARY KEY (id)
+    score INTEGER, 
+    is_cut BOOLEAN,
+    CONSTRAINT players_pkey PRIMARY KEY (id)
     );
