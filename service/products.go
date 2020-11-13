@@ -10,18 +10,18 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func (s *Server) GetProduct(w http.ResponseWriter, r *http.Request) {
+func (s *Server) GetPlayer(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid product ID")
+		respondWithError(w, http.StatusBadRequest, "Invalid player ID")
 		return
 	}
-	p := data.Product{ID: id}
-	if err := p.GetProduct(s.DB); err != nil {
+	p := data.Player{ID: id}
+	if err := p.GetPlayer(s.DB); err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			respondWithError(w, http.StatusNotFound, "Product not found")
+			respondWithError(w, http.StatusNotFound, "Player not found")
 		default:
 			respondWithError(w, http.StatusInternalServerError, err.Error())
 
@@ -31,7 +31,7 @@ func (s *Server) GetProduct(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, p)
 }
 
-func (s *Server) GetProducts(w http.ResponseWriter, r *http.Request) {
+func (s *Server) GetPlayers(w http.ResponseWriter, r *http.Request) {
 	count, _ := strconv.Atoi(r.FormValue("count"))
 	start, _ := strconv.Atoi(r.FormValue("start"))
 	if count > 10 || count < 1 {
@@ -41,16 +41,16 @@ func (s *Server) GetProducts(w http.ResponseWriter, r *http.Request) {
 		start = 0
 	}
 
-	products, err := data.GetProducts(s.DB, start, count)
+	players, err := data.GetPlayers(s.DB, start, count)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	respondWithJSON(w, http.StatusOK, products)
+	respondWithJSON(w, http.StatusOK, players)
 }
 
-func (s *Server) CreateProduct(w http.ResponseWriter, r *http.Request) {
-	var p data.Product
+func (s *Server) CreatePlayer(w http.ResponseWriter, r *http.Request) {
+	var p data.Player
 	d := json.NewDecoder(r.Body)
 	if err := d.Decode(&p); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
@@ -58,22 +58,22 @@ func (s *Server) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	if err := p.CreateProduct(s.DB); err != nil {
+	if err := p.CreatePlayer(s.DB); err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 	respondWithJSON(w, http.StatusCreated, p)
 }
 
-func (s *Server) UpdateProduct(w http.ResponseWriter, r *http.Request) {
+func (s *Server) UpdatePlayer(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid product ID")
+		respondWithError(w, http.StatusBadRequest, "Invalid player ID")
 		return
 	}
 
-	var p data.Product
+	var p data.Player
 	d := json.NewDecoder(r.Body)
 	if err := d.Decode(&p); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
@@ -82,23 +82,23 @@ func (s *Server) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	p.ID = id
 
-	if err := p.UpdateProduct(s.DB); err != nil {
+	if err := p.UpdatePlayer(s.DB); err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 	respondWithJSON(w, http.StatusOK, p)
 }
 
-func (s *Server) DeleteProduct(w http.ResponseWriter, r *http.Request) {
+func (s *Server) DeletePlayer(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid product ID")
+		respondWithError(w, http.StatusBadRequest, "Invalid player ID")
 		return
 	}
 
-	p := data.Product{ID: id}
-	if err := p.DeleteProduct(s.DB); err != nil {
+	p := data.Player{ID: id}
+	if err := p.DeletePlayer(s.DB); err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}

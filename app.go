@@ -49,7 +49,7 @@ func (a *App) Initialize(user, password, dbname, host, port, sslmode string) {
 	for m == nil && retries < 5 {
 		m, err = migrate.New("file://data/migrations", postgresURL)
 		if err != nil {
-			fmt.Errorf("failed to connect to db, retrying... retries=%d", retries)
+			fmt.Printf("failed to connect to db, retrying... retries=%d", retries)
 		}
 		time.Sleep(time.Second)
 		retries++

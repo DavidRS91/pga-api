@@ -8,7 +8,7 @@ type Player struct {
 	ID    int    `json:"id"`
 	Name  string `json:"name"`
 	Score int    `json:"score"`
-	IsCut bool   `json:is_cut`
+	IsCut bool   `json:"is_cut"`
 }
 
 func (p *Player) GetPlayer(db *sql.DB) error {
