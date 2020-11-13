@@ -3,7 +3,10 @@ package service
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"net/http"
+	"reflect"
 	"strconv"
 
 	"github.com/DavidRS91/pga-api/data"
@@ -103,4 +106,52 @@ func (s *Server) DeletePlayer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
+}
+
+func (s *Server) SyncPlayers(w http.ResponseWriter, r *http.Request) {
+	resp, err := http.Get("https://datacrunch.9c9media.ca/statsapi/sports/golf/leagues/golf/pga/scoreboard?brand=tsn")
+	if err != nil {
+		fmt.Printf("err: %w", err)
+		respondWithError(w, http.StatusBadRequest, "Invalid player ID")
+		return
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+
+	var result []map[string]interface{}
+	json.Unmarshal(body, &result)
+
+	eventList := result[0]["eventList"]
+	events := InterfaceSlice(eventList)
+
+	// TODO:
+	// 1. generate event map
+	// 2. grab playerEventStatsList key
+	// 3. parse playerEventStatsList for player data
+	v := reflect.ValueOf(events[0])
+	if v.Kind() == reflect.Map {
+		for _, key := range v.MapKeys() {
+			strct := v.MapIndex(key)
+			fmt.Println(key.Interface(), strct.Interface())
+		}
+	}
+
+	respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
+	return
+}
+
+// borrowed from https://stackoverflow.com/questions/12753805/type-converting-slices-of-interfaces
+func InterfaceSlice(slice interface{}) []interface{} {
+	s := reflect.ValueOf(slice)
+	if s.Kind() != reflect.Slice {
+		panic("InterfaceSlice() given a non-slice type")
+	}
+
+	ret := make([]interface{}, s.Len())
+
+	for i := 0; i < s.Len(); i++ {
+		ret[i] = s.Index(i).Interface()
+	}
+
+	return ret
 }

@@ -68,7 +68,7 @@ func (a *App) Initialize(user, password, dbname, host, port, sslmode string) {
 }
 
 func (a *App) Run(addr string) {
-	fmt.Printf("Listening on %s", addr)
+	fmt.Printf("Listening on %s \n", addr)
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowCredentials: true,
