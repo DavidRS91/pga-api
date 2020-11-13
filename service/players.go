@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"reflect"
 	"strconv"
 
 	"github.com/DavidRS91/pga-api/data"
@@ -109,49 +108,49 @@ func (s *Server) DeletePlayer(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) SyncPlayers(w http.ResponseWriter, r *http.Request) {
-	resp, err := http.Get("https://datacrunch.9c9media.ca/statsapi/sports/golf/leagues/golf/pga/scoreboard?brand=tsn")
+	// resp, err := http.Get("https://datacrunch.9c9media.ca/statsapi/sports/golf/leagues/golf/pga/scoreboard?brand=tsn")
+	resp, err := http.Get("https://datacrunch.9c9media.ca/statsapi/sports/golf/leagues/golf/pga/tournament/?brand=tsn&type=json")
 	if err != nil {
-		fmt.Printf("err: %w", err)
-		respondWithError(w, http.StatusBadRequest, "Invalid player ID")
+		respondWithError(w, http.StatusBadRequest, "Error fetching data")
 		return
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 
-	var result []map[string]interface{}
+	var result map[string]interface{}
 	json.Unmarshal(body, &result)
 
-	eventList := result[0]["eventList"]
+	eventList := result["events"]
 	events := InterfaceSlice(eventList)
-
-	// TODO:
-	// 1. generate event map
-	// 2. grab playerEventStatsList key
-	// 3. parse playerEventStatsList for player data
-	v := reflect.ValueOf(events[0])
-	if v.Kind() == reflect.Map {
-		for _, key := range v.MapKeys() {
-			strct := v.MapIndex(key)
-			fmt.Println(key.Interface(), strct.Interface())
+	eventMap := InterfaceMap(events[0])
+	players := InterfaceSlice(eventMap["playerEventStatsList"])
+	for _, p := range players {
+		pm := InterfaceMap(p)
+		info := InterfaceMap(pm["player"])
+		stats := InterfaceMap(pm["stats"])
+		fmt.Println("ID: ", info["playerId"], info["displayName"], ": ", stats["scoreTotal"])
+		name := info["displayName"].(string)
+		score, err := InterfaceInt(stats["scoreTotal"])
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		tsnID, err := InterfaceInt(info["playerId"])
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		player := data.Player{
+			Name:  name,
+			Score: score,
+			IsCut: false,
+			TsnID: tsnID,
+		}
+		if err := player.CreatePlayer(s.DB); err != nil {
+			respondWithError(w, http.StatusInternalServerError, err.Error())
+			return
 		}
 	}
-
 	respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
 	return
-}
-
-// borrowed from https://stackoverflow.com/questions/12753805/type-converting-slices-of-interfaces
-func InterfaceSlice(slice interface{}) []interface{} {
-	s := reflect.ValueOf(slice)
-	if s.Kind() != reflect.Slice {
-		panic("InterfaceSlice() given a non-slice type")
-	}
-
-	ret := make([]interface{}, s.Len())
-
-	for i := 0; i < s.Len(); i++ {
-		ret[i] = s.Index(i).Interface()
-	}
-
-	return ret
 }
