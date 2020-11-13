@@ -1,4 +1,4 @@
-module github.com/DavidRS91/simple-go-server
+module github.com/DavidRS91/pga-api
 
 go 1.13
 

@@ -28,7 +28,7 @@ func (p *Player) DeletePlayer(db *sql.DB) error {
 
 func (p *Player) CreatePlayer(db *sql.DB) error {
 	return db.QueryRow(
-		"INSERT INTO players(name, price) VALUES($1, $2, $3) RETURNING id", p.Name, p.Score, p.IsCut).
+		"INSERT INTO players(name, score, is_cut) VALUES($1, $2, $3) RETURNING id", p.Name, p.Score, p.IsCut).
 		Scan(&p.ID)
 
 }

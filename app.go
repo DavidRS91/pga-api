@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/DavidRS91/simple-go-server/service"
+	"github.com/DavidRS91/pga-api/service"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -49,7 +49,7 @@ func (a *App) Initialize(user, password, dbname, host, port, sslmode string) {
 	for m == nil && retries < 5 {
 		m, err = migrate.New("file://data/migrations", postgresURL)
 		if err != nil {
-			fmt.Printf("failed to connect to db, retrying... retries=%d", retries)
+			fmt.Printf("failed to connect to db, retrying... retries=%d\n", retries)
 		}
 		time.Sleep(time.Second)
 		retries++

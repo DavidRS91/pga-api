@@ -1,10 +1,10 @@
 version: '3'
 services:
-  simple-go-server-api:
+  pga-api:
     build:
       context: .
     depends_on:
-      - simple-go-server-db
+      - pga-db
     expose:
       - 8010
     ports:
@@ -13,10 +13,10 @@ services:
       - APP_DB_USERNAME=postgres
       - APP_DB_NAME=postgres
       - APP_DB_PASSWORD=mysecretpassword
-      - APP_DB_HOST=simple-go-server-db
+      - APP_DB_HOST=pga-db
       - APP_DB_PORT=5432
       - APP_DB_SSLMODE=disable 
-  simple-go-server-db:
+  pga-db:
     image: postgres
     expose:
       - 5432
@@ -24,5 +24,5 @@ services:
       - '5432:5432'
     environment:
       - POSTGRES_PASSWORD=mysecretpassword
-    # logging:
-    #   driver: none
+    logging:
+      driver: none
